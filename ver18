@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MY NOTE</title>
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.container {
+  flex: 1;
+  overflow-y: auto;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+  padding-bottom: 260px; /* space for number pad */
+  background: rgba(255,255,255,0.95);
+  border-radius: 1rem 1rem 0 0;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  backdrop-filter: blur(10px);
+}
+
+h1.title {
+  text-align: center;
+  color: #4f46e5;
+  margin-bottom: 1rem;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th, td {
+  padding: 0.6rem;
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+
+tr.active {
+  background: #d1fae5;
+}
+
+.delete-button {
+  background: #22c55e;
+  color: white;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.4rem;
+  border: none;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background: #15803d;
+}
+
+.date-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin: 0.5rem 0;
+}
+
+.copy-button {
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  color: white;
+  padding: 0.3rem 0.75rem;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  border: none;
+  cursor: pointer;
+}
+
+.copy-button:hover {
+  transform: scale(1.05);
+}
+
+/* Number Pad Fixed Bottom */
+.fixed-bottom-wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 600px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0;
+  background: #ffffff; /* Changed to solid white */
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.number-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem;
+}
+
+.button {
+  padding: 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.6rem;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.button.number { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+.button.clear { background: linear-gradient(135deg, #f87171, #dc2626); }
+.button.ok { background: linear-gradient(135deg, #34d399, #059669); }
+.button.hide { background: linear-gradient(135deg, #fbbf24, #d97706); }
+
+#numberInput {
+  grid-column: 1 / span 2;
+  text-align: center;
+  padding: 0.8rem;
+  font-size: 1.1rem;
+  border-radius: 0.5rem;
+  border: 2px solid #d1d5db;
+  cursor: pointer;
+}
+
+#hideButton {
+  grid-column: 3;
+  text-align: center;
+  font-weight: 600;
+  color: white;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+}
+
+#numberInput:focus { outline: none; border-color: #2563eb; }
+
+.motivation-row {
+  text-align: center;
+  font-weight: bold;
+  color: #0ea5e9;
+  background: white;
+}
+
+@media(max-width: 600px){
+  .button { font-size: 1rem; padding: 0.7rem; }
+  #numberInput { font-size: 1rem; padding: 0.6rem; }
+  table { font-size: 0.8rem; }
+  .container { padding-bottom: 260px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1 class="title">MY NOTE</h1>
+  <div id="activityContainer"></div>
+</div>
+
+<div class="fixed-bottom-wrapper">
+  <div class="number-pad" id="numberPadGrid">
+    <input id="numberInput" type="text" readonly placeholder="Enter activity number">
+    <button id="hideButton" class="button hide" onclick="toggleNumberPad()">H</button>
+
+    <button class="button number" onclick="appendNumber('1')">1</button>
+    <button class="button number" onclick="appendNumber('2')">2</button>
+    <button class="button number" onclick="appendNumber('3')">3</button>
+    <button class="button number" onclick="appendNumber('4')">4</button>
+    <button class="button number" onclick="appendNumber('5')">5</button>
+    <button class="button number" onclick="appendNumber('6')">6</button>
+    <button class="button number" onclick="appendNumber('7')">7</button>
+    <button class="button number" onclick="appendNumber('8')">8</button>
+    <button class="button number" onclick="appendNumber('9')">9</button>
+    <button class="button ok" onclick="submitActivity()">OK</button>
+    <button class="button number" onclick="appendNumber('0')">0</button>
+    <button class="button clear" onclick="clearNumber()">Clear</button>
+  </div>
+</div>
+
+<script>
+let currentNumber = '';
+let padHidden = false;
+
+function formatDate(d) {
+  const options = { year: 'numeric', month: 'short', day: 'numeric' };
+  return new Date(d).toLocaleDateString('en-US', options);
+}
+
+function renderAllActivities(scrollToBottom = false) {
+  const container = document.getElementById('activityContainer');
+  container.innerHTML = '';
+  let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+
+  const groups = {};
+  savedActivities.forEach((act, index) => {
+    if (act.startTimestamp) {
+      const startDate = new Date(act.startTimestamp);
+      const dateKey = formatDate(startDate);
+      if (!groups[dateKey]) groups[dateKey] = [];
+      groups[dateKey].push({ act, index });
+    }
+  });
+
+  const sortedDates = Object.keys(groups).sort((a, b) => new Date(a) - new Date(b));
+
+  sortedDates.forEach(date => {
+    const header = document.createElement('h2');
+    header.className = 'date-header';
+    header.innerHTML = `${date} <button onclick="copyForDate('${date}')" class="copy-button">Copy</button>`;
+    container.appendChild(header);
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'table-wrapper';
+
+    const table = document.createElement('table');
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th></th>
+          <th>Activity</th>
+          <th>Time</th>
+          <th>Duration</th>
+          <th>✔</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+    const tbody = table.querySelector('tbody');
+
+    groups[date].forEach(({ act, index }) => {
+      const start = new Date(act.startTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const end = act.endTimestamp ? new Date(act.endTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      const duration = act.endTimestamp ? Math.round((new Date(act.endTimestamp) - new Date(act.startTimestamp)) / 60000) + ' min' : '';
+      const checked = act.endTimestamp ? 'checked' : '';
+      const row = document.createElement('tr');
+      if (!act.endTimestamp) row.classList.add("active");
+      row.dataset.index = index;
+      row.innerHTML = `
+        <td><button class="delete-button" onclick="deleteActivity(${index})">D</button></td>
+        <td>${act.activity}</td>
+        <td>${start}<br>${end}</td>
+        <td>${duration}</td>
+        <td><input type="checkbox" ${checked} onclick="toggleCompleted(${index}, this.checked)"></td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    const motivationRow = document.createElement('tr');
+    motivationRow.className = 'motivation-row';
+    motivationRow.innerHTML = `<td colspan="5">I WORK FOR MY LOVES</td>`;
+    tbody.appendChild(motivationRow);
+
+    wrapper.appendChild(table);
+    container.appendChild(wrapper);
+  });
+
+  if (scrollToBottom) {
+    requestAnimationFrame(() => {
+      const scrollContainer = document.querySelector('.container');
+      const lastTable = container.querySelector('.table-wrapper:last-child table');
+      if (lastTable) {
+        const lastRow = lastTable.querySelector('tbody tr:last-child');
+        if (lastRow) {
+          lastRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Adjust scroll to ensure last row is above the number pad
+          const padHeight = document.querySelector('.fixed-bottom-wrapper').offsetHeight;
+          scrollContainer.scrollTop += padHeight / 2;
+        }
+      }
+    });
+  }
+}
+
+function appendNumber(num) {
+  currentNumber += num;
+  document.getElementById('numberInput').value = currentNumber;
+}
+
+function clearNumber() {
+  currentNumber = '';
+  document.getElementById('numberInput').value = '';
+}
+
+function deleteActivity(index) {
+  let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+  savedActivities.splice(index, 1);
+  localStorage.setItem('activities', JSON.stringify(savedActivities));
+  renderAllActivities(true);
+}
+
+function toggleCompleted(index, checked) {
+  let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+  if (checked && !savedActivities[index].endTimestamp) {
+    savedActivities[index].endTimestamp = new Date().toISOString();
+  } else if (!checked) {
+    savedActivities[index].endTimestamp = null;
+  }
+  localStorage.setItem('activities', JSON.stringify(savedActivities));
+  renderAllActivities(true);
+}
+
+function copyForDate(date) {
+  const savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+  let tsv = "Activity\tStart-End\tDuration\tCompleted\n";
+  savedActivities.filter(act => formatDate(act.startTimestamp) === date).forEach(act => {
+    const start = new Date(act.startTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const end = act.endTimestamp ? new Date(act.endTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    const duration = act.endTimestamp ? Math.round((new Date(act.endTimestamp) - new Date(act.startTimestamp)) / 60000) + ' min' : '';
+    const completed = act.endTimestamp ? 'Yes' : 'No';
+    tsv += `${act.activity}\t${start}-${end}\t${duration}\t${completed}\n`;
+  });
+  const textarea = document.createElement('textarea');
+  textarea.value = tsv;
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+  alert('Copied to clipboard!');
+}
+
+function submitActivity() {
+  if (!currentNumber) return;
+  const activityMap = { '1': 'Breakfast', '2': 'Showering', '3': 'Work', '4': 'Exercise', '5': 'Study' };
+  let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+
+  const activity = activityMap[currentNumber];
+  if (!activity) { alert('Invalid number (choose 1-5)'); return; }
+  savedActivities.push({ startTimestamp: new Date().toISOString(), activity: activity, endTimestamp: null });
+  localStorage.setItem('activities', JSON.stringify(savedActivities));
+
+  clearNumber();
+  renderAllActivities(true);
+}
+
+function toggleNumberPad() {
+  const grid = document.getElementById('numberPadGrid');
+  const hideBtn = document.getElementById('hideButton');
+  padHidden = !padHidden;
+  const buttons = [...grid.querySelectorAll('button')].filter(b => b.id !== 'hideButton');
+  buttons.forEach(b => b.style.display = padHidden ? 'none' : 'inline-block');
+  hideBtn.innerText = padHidden ? 'S' : 'H';
+}
+
+// Show pad when input is clicked and pad is hidden
+document.getElementById('numberInput').addEventListener('click', () => {
+  if (padHidden) toggleNumberPad();
+});
+
+// Initial render + scroll to last line
+window.onload = () => {
+  renderAllActivities(false);
+  requestAnimationFrame(() => {
+    const scrollContainer = document.querySelector('.container');
+    const lastTable = document.getElementById('activityContainer').querySelector('.table-wrapper:last-child table');
+    if (lastTable) {
+      const lastRow = lastTable.querySelector('tbody tr:last-child');
+      if (lastRow) {
+        lastRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Adjust scroll to ensure last row is above the number pad
+        scrollContainer.scrollTop += document.querySelector('.fixed-bottom-wrapper').offsetHeight / 2;
+      }
+    }
+  });
+};
+</script>
+</body>
+</html>
