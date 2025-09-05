@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Note</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 1rem;
+      color: #333;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 32rem;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 1rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #4f46e5;
+    }
+
+    /* Keypad grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .button {
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
+      padding: 1rem;
+      border-radius: 0.6rem;
+      font-size: 1.3rem;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      color: white;
+      border: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .clear-button {
+      background: linear-gradient(135deg, #f87171, #dc2626);
+    }
+
+    .ok-button {
+      background: linear-gradient(135deg, #34d399, #059669);
+    }
+
+    .finish-button {
+      background: linear-gradient(135deg, #fbbf24, #d97706);
+    }
+
+    .input-container {
+      grid-column: span 3;
+    }
+
+    .input {
+      width: 100%;
+      padding: 0.9rem;
+      text-align: center;
+      border: 2px solid #d1d5db;
+      border-radius: 0.5rem;
+      font-size: 1.1rem;
+      transition: border 0.2s ease;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+
+    .date-header {
+      font-size: 1.1rem;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      color: #1f2937;
+    }
+
+    .copy-button {
+      background: linear-gradient(135deg, #3b82f6, #1e40af);
+      color: white;
+      padding: 0.3rem 0.75rem;
+      border-radius: 0.4rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s ease;
+    }
+
+    .copy-button:hover {
+      transform: scale(1.05);
+    }
+
+    /* Scrollable table on small screens */
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 0.5rem;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      font-size: 0.9rem;
+    }
+
+    .table th, .table td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0.6rem;
+      text-align: center;
+    }
+
+    .table th {
+      background: #f3f4f6;
+      font-weight: 600;
+    }
+
+    .delete-button {
+      background: #22c55e;
+      color: white;
+      padding: 0.3rem 0.6rem;
+      border-radius: 0.4rem;
+      font-size: 0.85rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .delete-button:hover {
+      background: #15803d;
+    }
+
+    tr.active {
+      background: #d1fae5 !important;
+    }
+
+    /* 🔹 Mobile optimizations */
+    @media (max-width: 600px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .title {
+        font-size: 1.4rem;
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
+      }
+
+      .button {
+        font-size: 1.2rem;
+        padding: 0.9rem;
+      }
+
+      .input {
+        font-size: 1rem;
+        padding: 0.7rem;
+      }
+
+      .date-header {
+        font-size: 1rem;
+      }
+
+      .table {
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">Note</h1>
+
+    <!-- Number Pad -->
+    <div class="grid">
+      <button onclick="appendNumber('7')" class="button">7</button>
+      <button onclick="appendNumber('8')" class="button">8</button>
+      <button onclick="appendNumber('9')" class="button">9</button>
+      <button onclick="appendNumber('4')" class="button">4</button>
+      <button onclick="appendNumber('5')" class="button">5</button>
+      <button onclick="appendNumber('6')" class="button">6</button>
+      <button onclick="appendNumber('1')" class="button">1</button>
+      <button onclick="appendNumber('2')" class="button">2</button>
+      <button onclick="appendNumber('3')" class="button">3</button>
+      <button onclick="appendNumber('0')" class="button">0</button>
+      <button onclick="appendNumber('F')" class="button finish-button">F</button>
+      <button onclick="clearNumber()" class="button clear-button">Clear</button>
+      <button onclick="submitActivity()" class="button ok-button">OK</button>
+      <div class="input-container">
+        <input id="numberInput" type="text" readonly class="input" placeholder="Enter number or F + number">
+      </div>
+    </div>
+
+    <div id="activityContainer"></div>
+  </div>
+
+  <script>
+    let currentNumber = '';
+
+    function renderAllActivities() {
+      const container = document.getElementById('activityContainer');
+      container.innerHTML = '';
+      let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+
+      const groups = {};
+      savedActivities.forEach((act, index) => {
+        if (act.startTimestamp) {
+          const startDate = new Date(act.startTimestamp);
+          const dateKey = startDate.toLocaleDateString();
+          if (!groups[dateKey]) groups[dateKey] = [];
+          groups[dateKey].push({ act, index });
+        }
+      });
+
+      const sortedDates = Object.keys(groups).sort((a, b) => new Date(b) - new Date(a));
+
+      sortedDates.forEach(date => {
+        const header = document.createElement('h2');
+        header.className = 'date-header';
+        header.innerHTML = `${date} <button onclick="copyForDate('${date}')" class="copy-button">Copy</button>`;
+        container.appendChild(header);
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'table-wrapper';
+
+        const table = document.createElement('table');
+        table.className = 'table';
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th></th>
+              <th>Activity</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Duration</th>
+              <th>✔</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+        const tbody = table.querySelector('tbody');
+
+        groups[date].forEach(({ act, index }) => {
+          const startDateObj = new Date(act.startTimestamp);
+          const timeString = startDateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const endTimeString = act.endTimestamp ? new Date(act.endTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+          const duration = act.endTimestamp ? Math.round((new Date(act.endTimestamp) - startDateObj) / 60000) + ' min' : '';
+          const checked = act.endTimestamp ? 'checked' : '';
+          const row = document.createElement('tr');
+          if (!act.endTimestamp) row.classList.add("active");
+          row.innerHTML = `
+            <td><button onclick="deleteActivity(${index})" class="delete-button">D</button></td>
+            <td>${act.activity}</td>
+            <td>${timeString}</td>
+            <td>${endTimeString}</td>
+            <td>${duration}</td>
+            <td><input type="checkbox" ${checked} onclick="toggleCompleted(${index}, this.checked)"></td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        wrapper.appendChild(table);
+        container.appendChild(wrapper);
+      });
+    }
+
+    window.onload = function() {
+      renderAllActivities();
+    };
+
+    function appendNumber(num) {
+      if (num === 'F' && currentNumber === '') {
+        currentNumber = 'F';
+      } else if (currentNumber === 'F' && /[0-9]/.test(num)) {
+        currentNumber += num;
+      } else if (/[0-9]/.test(num) && currentNumber === '') {
+        currentNumber = num;
+      }
+      document.getElementById('numberInput').value = currentNumber;
+    }
+
+    function clearNumber() {
+      currentNumber = '';
+      document.getElementById('numberInput').value = '';
+    }
+
+    function deleteActivity(index) {
+      let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+      savedActivities.splice(index, 1);
+      localStorage.setItem('activities', JSON.stringify(savedActivities));
+      renderAllActivities();
+    }
+
+    function toggleCompleted(index, checked) {
+      let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+      const now = new Date();
+      if (checked) {
+        if (!savedActivities[index].endTimestamp) {
+          savedActivities[index].endTimestamp = now.toISOString();
+        }
+      } else {
+        savedActivities[index].endTimestamp = null;
+      }
+      localStorage.setItem('activities', JSON.stringify(savedActivities));
+      renderAllActivities();
+    }
+
+    function copyForDate(date) {
+      const savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+      let tsv = "Activity\tStart Time\tEnd Time\tDuration\tCompleted\n";
+      savedActivities.filter(act => new Date(act.startTimestamp).toLocaleDateString() === date).forEach(act => {
+        const startTime = new Date(act.startTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const endTime = act.endTimestamp ? new Date(act.endTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        const duration = act.endTimestamp ? Math.round((new Date(act.endTimestamp) - new Date(act.startTimestamp)) / 60000) + ' min' : '';
+        const completed = act.endTimestamp ? 'Yes' : 'No';
+        tsv += `${act.activity}\t${startTime}\t${endTime}\t${duration}\t${completed}\n`;
+      });
+
+      const textarea = document.createElement('textarea');
+      textarea.value = tsv;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      alert('Copied to clipboard!');
+    }
+
+    function submitActivity() {
+      if (!currentNumber) return;
+
+      const activityMap = {
+        '1': 'Breakfast',
+        '2': 'Showering',
+        '3': 'Work',
+        '4': 'Exercise',
+        '5': 'Study'
+      };
+
+      let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+
+      if (currentNumber.startsWith('F')) {
+        const activityNum = currentNumber.slice(1);
+        const activity = activityMap[activityNum];
+        if (!activity) {
+          alert('Invalid number after F');
+          return;
+        }
+        const activityIndex = savedActivities.slice().reverse().findIndex(
+          act => act.activity === activity && !act.endTimestamp
+        );
+        if (activityIndex === -1) {
+          alert(`No active ${activity} found to end`);
+          return;
+        }
+        const actualIndex = savedActivities.length - 1 - activityIndex;
+        const now = new Date();
+        savedActivities[actualIndex].endTimestamp = now.toISOString();
+        localStorage.setItem('activities', JSON.stringify(savedActivities));
+      } else {
+        const activity = activityMap[currentNumber];
+        if (!activity) {
+          alert('Invalid number (choose 1-5)');
+          return;
+        }
+        const now = new Date();
+        savedActivities.push({ startTimestamp: now.toISOString(), activity: activity, endTimestamp: null });
+        localStorage.setItem('activities', JSON.stringify(savedActivities));
+      }
+
+      currentNumber = '';
+      document.getElementById('numberInput').value = '';
+      renderAllActivities();
+    }
+  </script>
+</body>
+</html>
