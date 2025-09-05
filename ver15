@@ -1,0 +1,247 @@
+
+
+
+
+
+MY NOTE
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+<p>.container {<br>  flex: 1;<br>  overflow-y: auto;<br>  max-width: 600px;<br>  margin: 0 auto;<br>  padding: 1rem;<br>  padding-bottom: 260px; /* space for number pad */<br>  background: rgba(255,255,255,0.95);<br>  border-radius: 1rem 1rem 0 0;<br>  box-shadow: 0 8px 20px rgba(0,0,0,0.2);<br>  backdrop-filter: blur(10px);<br>}</p>
+<p>h1.title {<br>  text-align: center;<br>  color: #4f46e5;<br>  margin-bottom: 1rem;<br>}</p>
+<p>.table-wrapper {<br>  overflow-x: auto;<br>  margin-bottom: 1rem;<br>}</p>
+<p>table {<br>  width: 100%;<br>  border-collapse: collapse;<br>  font-size: 0.9rem;<br>}</p>
+<p>th, td {<br>  padding: 0.6rem;<br>  text-align: center;<br>  border-bottom: 1px solid #e5e7eb;<br>}</p>
+<p>th {<br>  background: #f3f4f6;<br>  font-weight: 600;<br>}</p>
+<p>tr.active {<br>  background: #d1fae5;<br>}</p>
+<p>.delete-button {<br>  background: #22c55e;<br>  color: white;<br>  padding: 0.3rem 0.6rem;<br>  border-radius: 0.4rem;<br>  border: none;<br>  cursor: pointer;<br>}</p>
+<p>.delete-button:hover {<br>  background: #15803d;<br>}</p>
+<p>.date-header {<br>  display: flex;<br>  justify-content: space-between;<br>  align-items: center;<br>  font-weight: bold;<br>  margin: 0.5rem 0;<br>}</p>
+<p>.copy-button {<br>  background: linear-gradient(135deg, #3b82f6, #1e40af);<br>  color: white;<br>  padding: 0.3rem 0.75rem;<br>  border-radius: 0.4rem;<br>  font-size: 0.85rem;<br>  border: none;<br>  cursor: pointer;<br>}</p>
+<p>.copy-button:hover {<br>  transform: scale(1.05);<br>}</p>
+<p>/* Number Pad Fixed Bottom */<br>.fixed-bottom-wrapper {<br>  position: fixed;<br>  bottom: 0;<br>  left: 50%;<br>  transform: translateX(-50%);<br>  width: 100%;<br>  max-width: 600px;<br>  z-index: 10;<br>  display: flex;<br>  flex-direction: column;<br>  align-items: center;<br>  gap: 0.3rem;<br>  padding: 0.5rem 0;<br>  background: rgba(255,255,255,0.95);<br>  box-shadow: 0 -4px 12px rgba(0,0,0,0.2);<br>  border-radius: 0.5rem 0.5rem 0 0;<br>}</p>
+<p>.number-pad {<br>  display: grid;<br>  grid-template-columns: repeat(3, 1fr);<br>  gap: 0.5rem;<br>  width: 100%;<br>  padding: 0.5rem;<br>}</p>
+<p>.button {<br>  padding: 1rem;<br>  font-size: 1.2rem;<br>  font-weight: 600;<br>  border: none;<br>  border-radius: 0.6rem;<br>  color: white;<br>  cursor: pointer;<br>  transition: transform 0.15s ease, box-shadow 0.15s ease;<br>}</p>
+<p>.button:hover {<br>  transform: translateY(-2px);<br>  box-shadow: 0 4px 10px rgba(0,0,0,0.2);<br>}</p>
+<p>.button.number { background: linear-gradient(135deg, #60a5fa, #2563eb); }<br>.button.clear { background: linear-gradient(135deg, #f87171, #dc2626); }<br>.button.ok { background: linear-gradient(135deg, #34d399, #059669); }<br>.button.hide { background: linear-gradient(135deg, #fbbf24, #d97706); }</p>
+<p>#numberInput {<br>  grid-column: 1 / span 2;<br>  text-align: center;<br>  padding: 0.8rem;<br>  font-size: 1.1rem;<br>  border-radius: 0.5rem;<br>  border: 2px solid #d1d5db;<br>  cursor: pointer;<br>}</p>
+<p>#hideButton {<br>  grid-column: 3;<br>  text-align: center;<br>  font-weight: 600;<br>  color: white;<br>  border-radius: 0.5rem;<br>  border: none;<br>  cursor: pointer;<br>}</p>
+<p>#numberInput:focus { outline: none; border-color: #2563eb; }</p>
+<p>.motivation-row {<br>  text-align: center;<br>  font-weight: bold;<br>  color: #0ea5e9;<br>  background: white;<br>}</p>
+<p>@media(max-width: 600px){<br>  .button { font-size: 1rem; padding: 0.7rem; }<br>  #numberInput { font-size: 1rem; padding: 0.6rem; }<br>  table { font-size: 0.8rem; }<br>  .container { padding-bottom: 260px; }<br>}<br>
+
+
+
+  MY NOTE
+  
+
+
+
+  
+    
+    H
+
+<button class="button number" onclick="appendNumber('1')">1</button>
+<button class="button number" onclick="appendNumber('2')">2</button>
+<button class="button number" onclick="appendNumber('3')">3</button>
+<button class="button number" onclick="appendNumber('4')">4</button>
+<button class="button number" onclick="appendNumber('5')">5</button>
+<button class="button number" onclick="appendNumber('6')">6</button>
+<button class="button number" onclick="appendNumber('7')">7</button>
+<button class="button number" onclick="appendNumber('8')">8</button>
+<button class="button number" onclick="appendNumber('9')">9</button>
+<button class="button ok" onclick="submitActivity()">OK</button>
+<button class="button number" onclick="appendNumber('0')">0</button>
+<button class="button clear" onclick="clearNumber()">Clear</button>
+
+  
+
+
+
+let currentNumber = '';
+let padHidden = false;
+
+function formatDate(d) {
+  const options = { year: 'numeric', month: 'short', day: 'numeric' };
+  return new Date(d).toLocaleDateString('en-US', options);
+}
+
+function renderAllActivities(scrollToBottom = false) {
+  const container = document.getElementById('activityContainer');
+  container.innerHTML = '';
+  let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+
+  const groups = {};
+  savedActivities.forEach((act, index) => {
+    if (act.startTimestamp) {
+      const startDate = new Date(act.startTimestamp);
+      const dateKey = formatDate(startDate);
+      if (!groups[dateKey]) groups[dateKey] = [];
+      groups[dateKey].push({ act, index });
+    }
+  });
+
+  const sortedDates = Object.keys(groups).sort((a, b) => new Date(a) - new Date(b));
+
+  sortedDates.forEach(date => {
+    const header = document.createElement('h2');
+    header.className = 'date-header';
+    header.innerHTML = `${date} <button onclick="copyForDate('${date}')" class="copy-button">Copy</button>`;
+    container.appendChild(header);
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'table-wrapper';
+
+    const table = document.createElement('table');
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th></th>
+          <th>Activity</th>
+          <th>Time</th>
+          <th>Duration</th>
+          <th>✔</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+    const tbody = table.querySelector('tbody');
+
+    groups[date].forEach(({ act, index }) => {
+      const start = new Date(act.startTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const end = act.endTimestamp ? new Date(act.endTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      const duration = act.endTimestamp ? Math.round((new Date(act.endTimestamp) - new Date(act.startTimestamp)) / 60000) + ' min' : '';
+      const checked = act.endTimestamp ? 'checked' : '';
+      const row = document.createElement('tr');
+      if (!act.endTimestamp) row.classList.add("active");
+      row.dataset.index = index;
+      row.innerHTML = `
+        <td><button class="delete-button" onclick="deleteActivity(${index})">D</button></td>
+        <td>${act.activity}</td>
+        <td>${start}<br>${end}</td>
+        <td>${duration}</td>
+        <td><input type="checkbox" ${checked} onclick="toggleCompleted(${index}, this.checked)"></td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    const motivationRow = document.createElement('tr');
+    motivationRow.className = 'motivation-row';
+    motivationRow.innerHTML = `<td colspan="5">I WORK FOR MY LOVES</td>`;
+    tbody.appendChild(motivationRow);
+
+    wrapper.appendChild(table);
+    container.appendChild(wrapper);
+  });
+
+  if (scrollToBottom) {
+    requestAnimationFrame(() => {
+      const lastTable = container.querySelector('.table-wrapper:last-child table');
+      if (lastTable) {
+        const lastRow = lastTable.querySelector('tbody tr:last-child');
+        if (lastRow) {
+          lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+      }
+    });
+  }
+}
+
+function appendNumber(num) {
+  currentNumber += num;
+  document.getElementById('numberInput').value = currentNumber;
+}
+
+function clearNumber() {
+  currentNumber = '';
+  document.getElementById('numberInput').value = '';
+}
+
+function deleteActivity(index) {
+  let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+  savedActivities.splice(index, 1);
+  localStorage.setItem('activities', JSON.stringify(savedActivities));
+  renderAllActivities(true);
+}
+
+function toggleCompleted(index, checked) {
+  let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+  if (checked && !savedActivities[index].endTimestamp) {
+    savedActivities[index].endTimestamp = new Date().toISOString();
+  } else if (!checked) {
+    savedActivities[index].endTimestamp = null;
+  }
+  localStorage.setItem('activities', JSON.stringify(savedActivities));
+  renderAllActivities(true);
+}
+
+function copyForDate(date) {
+  const savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+  let tsv = "Activity\tStart-End\tDuration\tCompleted\n";
+  savedActivities.filter(act => formatDate(act.startTimestamp) === date).forEach(act => {
+    const start = new Date(act.startTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const end = act.endTimestamp ? new Date(act.endTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    const duration = act.endTimestamp ? Math.round((new Date(act.endTimestamp) - new Date(act.startTimestamp)) / 60000) + ' min' : '';
+    const completed = act.endTimestamp ? 'Yes' : 'No';
+    tsv += `${act.activity}\t${start}-${end}\t${duration}\t${completed}\n`;
+  });
+  const textarea = document.createElement('textarea');
+  textarea.value = tsv;
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+  alert('Copied to clipboard!');
+}
+
+function submitActivity() {
+  if (!currentNumber) return;
+  const activityMap = { '1': 'Breakfast', '2': 'Showering', '3': 'Work', '4': 'Exercise', '5': 'Study' };
+  let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+
+  const activity = activityMap[currentNumber];
+  if (!activity) { alert('Invalid number (choose 1-5)'); return; }
+  savedActivities.push({ startTimestamp: new Date().toISOString(), activity: activity, endTimestamp: null });
+  localStorage.setItem('activities', JSON.stringify(savedActivities));
+
+  clearNumber();
+  renderAllActivities(true);
+}
+
+function toggleNumberPad() {
+  const grid = document.getElementById('numberPadGrid');
+  const hideBtn = document.getElementById('hideButton');
+  padHidden = !padHidden;
+  const buttons = [...grid.querySelectorAll('button')].filter(b => b.id !== 'hideButton');
+  buttons.forEach(b => b.style.display = padHidden ? 'none' : 'inline-block');
+  hideBtn.innerText = padHidden ? 'S' : 'H';
+}
+
+// Show pad when input is clicked and pad is hidden
+document.getElementById('numberInput').addEventListener('click', () => {
+  if (padHidden) toggleNumberPad();
+});
+
+// Initial render + scroll to last line
+window.onload = () => {
+  renderAllActivities(false);
+  requestAnimationFrame(() => {
+    const container = document.getElementById('activityContainer');
+    const lastTable = container.querySelector('.table-wrapper:last-child table');
+    if (lastTable) {
+      const lastRow = lastTable.querySelector('tbody tr:last-child');
+      if (lastRow) {
+        lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+    }
+  });
+};
+
+
