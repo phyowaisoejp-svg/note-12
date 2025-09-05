@@ -1,1 +1,207 @@
 
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
+use web_sys::{window, Document, HtmlInputElement, Element, HtmlTableSectionElement};
+use js_sys::Date;
+
+// Struct for activity
+#[wasm_bindgen]
+#[derive(serde::Serialize, serde::Deserialize, Clone)]
+pub struct Activity {
+    pub activity: String,
+    pub start_timestamp: String,
+    pub end_timestamp: Option<String>,
+}
+
+// Entry point
+#[wasm_bindgen(start)]
+pub fn start() -> Result<(), JsValue> {
+    let document = window().unwrap().document().unwrap();
+    document.set_title("MY NOTE");
+
+    render_all_activities(true)?;
+    setup_number_pad(&document)?;
+
+    Ok(())
+}
+
+// Helper: get document
+fn doc() -> Document {
+    window().unwrap().document().unwrap()
+}
+
+// Save activities to localStorage
+fn save_activities(activities: &Vec<Activity>) {
+    let storage = window().unwrap().local_storage().unwrap().unwrap();
+    let json = serde_json::to_string(activities).unwrap();
+    storage.set_item("activities", &json).unwrap();
+}
+
+// Load activities
+fn load_activities() -> Vec<Activity> {
+    let storage = window().unwrap().local_storage().unwrap().unwrap();
+    if let Ok(Some(data)) = storage.get_item("activities") {
+        serde_json::from_str(&data).unwrap_or_default()
+    } else {
+        Vec::new()
+    }
+}
+
+// Format date like "Jan 1, 2025"
+fn format_date(date_str: &str) -> String {
+    let date = Date::new(&JsValue::from_str(date_str));
+    let options = js_sys::Object::new();
+    js_sys::Reflect::set(&options, &JsValue::from_str("month"), &JsValue::from_str("short")).unwrap();
+    js_sys::Reflect::set(&options, &JsValue::from_str("day"), &JsValue::from_str("numeric")).unwrap();
+    js_sys::Reflect::set(&options, &JsValue::from_str("year"), &JsValue::from_str("numeric")).unwrap();
+    date.to_locale_date_string("en-US", &options.into())
+}
+
+// Render activities into table
+#[wasm_bindgen]
+pub fn render_all_activities(scroll_to_bottom: bool) -> Result<(), JsValue> {
+    let container = doc().get_element_by_id("activityContainer").unwrap();
+    container.set_inner_html("");
+
+    let activities = load_activities();
+
+    let mut current_date = String::new();
+    let mut table: Option<Element> = None;
+
+    for (i, act) in activities.iter().enumerate() {
+        let date = format_date(&act.start_timestamp);
+
+        // New date section
+        if date != current_date {
+            current_date = date.clone();
+            let header = doc().create_element("h2")?;
+            header.set_class_name("date-header");
+            header.set_inner_html(&date);
+            container.append_child(&header)?;
+
+            let wrapper = doc().create_element("div")?;
+            wrapper.set_class_name("table-wrapper");
+            let tbl = doc().create_element("table")?;
+            tbl.set_inner_html(r#"
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Activity</th>
+                  <th>Time</th>
+                  <th>Duration</th>
+                  <th>✔</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            "#);
+            wrapper.append_child(&tbl)?;
+            container.append_child(&wrapper)?;
+            table = Some(tbl);
+        }
+
+        // Add row
+        if let Some(tbl) = &table {
+            let tbody: HtmlTableSectionElement = tbl.dyn_ref::<web_sys::HtmlTableElement>().unwrap().t_bodies().item(0).unwrap().dyn_into().unwrap();
+
+            let row = doc().create_element("tr")?;
+            row.set_attribute("data-index", &i.to_string())?;
+
+            let start = Date::new(&JsValue::from_str(&act.start_timestamp))
+                .to_locale_time_string("en-US", &JsValue::from_str("{ hour: '2-digit', minute: '2-digit' }"));
+            let end = if let Some(end_ts) = &act.end_timestamp {
+                Date::new(&JsValue::from_str(end_ts)).to_locale_time_string("en-US", &JsValue::from_str("{ hour: '2-digit', minute: '2-digit' }"))
+            } else {
+                "".into()
+            };
+
+            let duration = if let Some(end_ts) = &act.end_timestamp {
+                let start_d = Date::new(&JsValue::from_str(&act.start_timestamp)).get_time();
+                let end_d = Date::new(&JsValue::from_str(end_ts)).get_time();
+                format!("{} min", ((end_d - start_d) / 60000.0).round() as i32)
+            } else {
+                "".into()
+            };
+
+            row.set_inner_html(&format!(r#"
+                <td><button onclick="wasm_bindgen.delete_activity({})">D</button></td>
+                <td>{}</td>
+                <td>{}<br>{}</td>
+                <td>{}</td>
+                <td><input type="checkbox" {} onclick="wasm_bindgen.toggle_completed({}, this.checked)"></td>
+            "#, i, act.activity, start, end, duration, if act.end_timestamp.is_some() { "checked" } else { "" }, i));
+
+            tbody.append_child(&row)?;
+        }
+    }
+
+    // Add motivation line
+    if let Some(tbl) = &table {
+        let tbody: HtmlTableSectionElement = tbl.dyn_ref::<web_sys::HtmlTableElement>().unwrap().t_bodies().item(0).unwrap().dyn_into().unwrap();
+        let row = doc().create_element("tr")?;
+        row.set_class_name("motivation-row");
+        row.set_inner_html(r#"<td colspan="5">I WORK FOR MY LOVES</td>"#);
+        tbody.append_child(&row)?;
+    }
+
+    // Auto scroll
+    if scroll_to_bottom {
+        let container = doc().query_selector(".container").unwrap().unwrap();
+        container.scroll_with_x_and_y(0.0, container.scroll_height() as f64);
+    }
+
+    Ok(())
+}
+
+#[wasm_bindgen]
+pub fn submit_activity(num: i32) {
+    let mut activities = load_activities();
+    let activity_map = vec!["Breakfast", "Showering", "Work", "Exercise", "Study"];
+    if let Some(act_name) = activity_map.get((num - 1) as usize) {
+        activities.push(Activity {
+            activity: act_name.to_string(),
+            start_timestamp: js_sys::Date::new_0().to_iso_string().into(),
+            end_timestamp: None,
+        });
+        save_activities(&activities);
+        let _ = render_all_activities(true);
+    }
+}
+
+#[wasm_bindgen]
+pub fn delete_activity(index: usize) {
+    let mut activities = load_activities();
+    if index < activities.len() {
+        activities.remove(index);
+        save_activities(&activities);
+        let _ = render_all_activities(true);
+    }
+}
+
+#[wasm_bindgen]
+pub fn toggle_completed(index: usize, checked: bool) {
+    let mut activities = load_activities();
+    if let Some(act) = activities.get_mut(index) {
+        if checked {
+            act.end_timestamp = Some(js_sys::Date::new_0().to_iso_string().into());
+        } else {
+            act.end_timestamp = None;
+        }
+        save_activities(&activities);
+        let _ = render_all_activities(true);
+    }
+}
+
+// Setup number pad buttons
+fn setup_number_pad(document: &Document) -> Result<(), JsValue> {
+    for i in 0..=9 {
+        let id = format!("btn{}", i);
+        if let Some(btn) = document.get_element_by_id(&id) {
+            let closure = Closure::wrap(Box::new(move || {
+                submit_activity(i);
+            }) as Box<dyn FnMut()>);
+            btn.add_event_listener_with_callback("click", closure.as_ref().unchecked_ref())?;
+            closure.forget();
+        }
+    }
+    Ok(())
+}
