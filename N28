@@ -20,8 +20,7 @@ body {
   max-width: 600px;
   margin: 0 auto;
   padding: 1rem;
-  /* JS will override padding-bottom dynamically based on keypad height */
-  padding-bottom: 260px; /* fallback */
+  padding-bottom: 260px; /* fallback, JS overrides */
   background: rgba(255,255,255,0.95);
   border-radius: 1rem 1rem 0 0;
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
@@ -175,7 +174,7 @@ tr.active {
   .button { font-size: 1rem; padding: 0.7rem; }
   #numberInput { font-size: 1rem; padding: 0.6rem; }
   table { font-size: 0.8rem; }
-  .container { padding-bottom: 260px; } /* JS overrides anyway */
+  .container { padding-bottom: 260px; }
 }
 </style>
 </head>
@@ -249,7 +248,6 @@ function formatDuration(ms) {
   return `${minutes} min`;
 }
 
-/* ---------- SCROLL & PADDING HELPERS ---------- */
 function getFooterHeight() {
   const el = document.querySelector('.fixed-bottom-wrapper');
   return el ? el.offsetHeight : 0;
@@ -258,21 +256,17 @@ function getFooterHeight() {
 function updateContainerPadding() {
   const container = document.querySelector('.container');
   const footerH = getFooterHeight();
-  // +16 for a comfortable gap above the keypad
   container.style.paddingBottom = (footerH + 16) + 'px';
 }
 
 function scrollToLastActivity(smooth = true) {
   const container = document.querySelector('.container');
-  // Make sure padding accounts for the keypad before we measure heights
   updateContainerPadding();
   const behavior = smooth ? 'smooth' : 'auto';
-  // Scroll to the very bottom — padding ensures last row sits above the keypad
   requestAnimationFrame(() => {
     container.scrollTo({ top: container.scrollHeight, behavior });
   });
 }
-/* --------------------------------------------- */
 
 function renderAllActivities(scrollToLast = false) {
   const container = document.getElementById('activityContainer');
@@ -297,7 +291,7 @@ function renderAllActivities(scrollToLast = false) {
   sortedDates.forEach(date => {
     const header = document.createElement('h2');
     header.className = 'date-header';
-    header.innerHTML = `${date} <button onclick="copyForDate('${date}')" class="copy-button" aria-label="Copy activities for ${date}">Copy</button>`;
+    header.innerHTML = `${date} <button onclick="copyForDate('${date}')" class="copy-button">Copy</button>`;
     container.appendChild(header);
 
     const wrapper = document.createElement('div');
@@ -327,11 +321,11 @@ function renderAllActivities(scrollToLast = false) {
       if (!act.endTimestamp) row.classList.add("active");
       row.dataset.index = index;
       row.innerHTML = `
-        <td><button class="delete-button" onclick="deleteActivity(${index})" aria-label="Delete activity">D</button></td>
+        <td><button class="delete-button" onclick="deleteActivity(${index})">D</button></td>
         <td>${act.activity}</td>
         <td>${start}<br>${end}</td>
         <td>${duration}</td>
-        <td><input type="checkbox" ${checked} onclick="toggleCompleted(${index}, this.checked)" aria-label="Mark activity complete"></td>
+        <td><input type="checkbox" ${checked} onclick="toggleCompleted(${index}, this.checked)"></td>
       `;
       tbody.appendChild(row);
     });
@@ -345,7 +339,6 @@ function renderAllActivities(scrollToLast = false) {
     container.appendChild(wrapper);
   });
 
-  // Update padding to avoid overlap and optionally scroll
   updateContainerPadding();
   if (scrollToLast && savedActivities.length > 0) {
     setTimeout(() => scrollToLastActivity(true), 50);
@@ -355,6 +348,11 @@ function renderAllActivities(scrollToLast = false) {
 function appendNumber(num) {
   currentNumber += num;
   document.getElementById('numberInput').value = currentNumber;
+
+  // 🔥 Auto-scroll when first number is entered
+  if (currentNumber.length === 1) {
+    setTimeout(() => scrollToLastActivity(true), 50);
+  }
 }
 
 function clearNumber() {
@@ -368,7 +366,7 @@ function deleteActivity(index) {
   let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
   savedActivities.splice(index, 1);
   localStorage.setItem('activities', JSON.stringify(savedActivities));
-  renderAllActivities(true); // keep view pinned to bottom after deletion
+  renderAllActivities(true);
 }
 
 function toggleCompleted(index, checked) {
@@ -420,7 +418,6 @@ function submitActivity() {
 
   let savedActivities = JSON.parse(localStorage.getItem('activities') || '[]');
 
-  // Auto-close last activity if still open
   if (savedActivities.length > 0) {
     let last = savedActivities[savedActivities.length - 1];
     if (!last.endTimestamp) {
@@ -433,7 +430,6 @@ function submitActivity() {
   clearNumber();
   renderAllActivities(true);
 
-  // Ensure we stay pinned to bottom after the DOM paints
   setTimeout(() => scrollToLastActivity(true), 50);
 }
 
@@ -445,7 +441,6 @@ function toggleNumberPad() {
   buttons.forEach(b => b.style.display = padHidden ? 'none' : 'inline-block');
   hideBtn.innerText = padHidden ? 'S' : 'H';
 
-  // Recompute padding and keep bottom in view when keypad height changes
   updateContainerPadding();
   setTimeout(() => scrollToLastActivity(true), 50);
 }
@@ -454,7 +449,6 @@ document.getElementById('numberInput').addEventListener('click', () => {
   if (padHidden) toggleNumberPad();
 });
 
-// MutationObserver as a safety fallback
 const activityContainer = document.getElementById('activityContainer');
 const observer = new MutationObserver(() => {
   updateContainerPadding();
@@ -464,10 +458,8 @@ const observer = new MutationObserver(() => {
 });
 observer.observe(activityContainer, { childList: true, subtree: true });
 
-// Keep padding correct on resize/orientation changes
 window.addEventListener('resize', () => {
   updateContainerPadding();
-  // keep pinned at bottom on resize
   scrollToLastActivity(false);
 });
 window.addEventListener('orientationchange', () => {
@@ -480,6 +472,9 @@ window.addEventListener('orientationchange', () => {
 window.onload = () => {
   updateContainerPadding();
   renderAllActivities(true);
+
+  // 🔥 Ensure autoscroll after first load
+  setTimeout(() => scrollToLastActivity(true), 100);
 };
 </script>
 </body>
